@@ -2,36 +2,23 @@ import numpy as np
 import tensorflow as tf
 
 
-'''
-# Provided functions
-def my_max_tf(x, gamma):
-    # Use the log-sum-exp trick
-    max_x = tf.reduce_max(x)
-    exp_x = tf.exp((x - max_x) / gamma)
-    Z = tf.reduce_sum(exp_x)
-    return gamma * tf.math.log(Z) + max_x, exp_x / Z
-
-def my_min_tf(x, gamma):
-    min_x, argmax_x = my_max_tf(-x, gamma)
-    return -min_x, argmax_x
-'''
-
 # Provided functions
 def my_max(x, gamma):
-    # Use the log-sum-exp trick
+    # Use the log-sum-exp trick to compute a smoothed max
     max_x = np.max(x)
     exp_x = np.exp((x - max_x) / gamma)
     Z = np.sum(exp_x)
     return gamma * np.log(Z) + max_x, exp_x / Z
 
+# Compute a smoothed minimum using my_max
 def my_min(x, gamma):
     min_x, argmax_x = my_max(-x, gamma)
     return -min_x, argmax_x
 
 
 def dtw_grad_tf(theta, gamma):
-    m = tf.shape(theta)[0]
-    n = tf.shape(theta)[1]
+    m = tf.shape(theta)[0] # Number of rows in the cost matrix
+    n = tf.shape(theta)[1] # Number of columns in the cost matrix
 
     # Initialize V matrix
     V = tf.fill((m + 1, n + 1), 1e10)
@@ -43,6 +30,7 @@ def dtw_grad_tf(theta, gamma):
     # Forward pass
     for i in range(1, m + 1):
         for j in range(1, n + 1):
+            # Compute the cost from three possible directions
             values = tf.stack([
                 V[i, j - 1],  # left
                 V[i - 1, j - 1],  # diagonal
@@ -67,6 +55,7 @@ def dtw_grad_tf(theta, gamma):
                 Q[i + 1, j, 2] * E[i + 1, j]
             ])
 
+    # Return the total cost, the gradient matrix, and softmin weights
     return V[m, n], E[1:m + 1, 1:n + 1], Q, E
 
 
@@ -77,7 +66,7 @@ class PathDTWBatchTF(tf.keras.layers.Layer):
 
     def call(self, D):
         batch_size = tf.shape(D)[0]
-        N = tf.shape(D)[1]
+        N = tf.shape(D)[1] # Size of the cost matrix
 
         grad_list = []
 
@@ -89,4 +78,4 @@ class PathDTWBatchTF(tf.keras.layers.Layer):
         grad_tensor = tf.stack(grad_list, axis=0)
 
         # Return the mean gradient
-        return tf.reduce_mean(grad_tensor, axis=0)    
+        return tf.reduce_mean(grad_tensor, axis=0)   
