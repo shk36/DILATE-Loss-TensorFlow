@@ -10,7 +10,7 @@ This repository provides a TensorFlow implementation of the DILATE loss, a diffe
 ### Installation
 To install the necessary dependencies, clone this repository and install the required packages:
 ```bash
-   git clone https://github.com/your_username/DILATE-Loss-TensorFlow.git
+   git clone https://github.com/shk36/DILATE-Loss-TensorFlow.git
    cd DILATE-Loss-TensorFlow
 ```
 
